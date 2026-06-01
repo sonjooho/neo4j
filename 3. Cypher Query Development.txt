@@ -1,0 +1,35 @@
+- Usecase 1: The Anti-Money Laundering (AML) Circular Transfer Ring
+  -> Money launderers often split large sums of money across multiple dummy accounts (smurfing) before routing it back to the original source to make the funds look legitimate. It typically utilize 3 to 6 transfer steps (or "hops") through dummy and mule accounts. In a traditional relational database (SQL), finding a 5-hop circular transfer requires 5 massive, slow JOIN operations. In a graph database, it is a native pattern match.
+  - Query
+    // 1. Find a path where money leaves an account and eventually returns to that SAME account
+    MATCH path = (start:Account)-[t:TRANSFERRED_TO*3..6]->(start)
+    // 2. Add a threshold filter: Only look at paths where every transfer is over $10,000
+    WHERE all(rel in relationships(path) WHERE rel.amount > 10000)
+    // 3. Return the visual path, and calculate how many hops it took
+    RETURN path, length(path) AS numberOfHops
+    ORDER BY numberOfHops ASC
+
+- Usecase 2: Customer Segmentation & VIP Discovery
+  -> The marketing team wants to find their true "VIP"—customers who aren't just holding money in accounts, but are actively engaging with the economy, transferring funds, and utilizing credit.
+  - Query
+    // 1. Match Customers to their distinct activities
+    MATCH (c:Customer)
+    OPTIONAL MATCH (c)-[:HAS_CARD]->(:Card)-[p:PURCHASED_AT]->(:Merchant)
+    OPTIONAL MATCH (c)-[:HAS_ACCOUNT]->(a:Account)-[t:TRANSFERRED_TO]->(:Account)
+    // 2. Calculate their lifetime economic footprint
+    WITH c, 
+         count(p) AS totalPurchases, 
+         sum(p.amount) AS totalSpent,
+         count(t) AS totalTransfersOut,
+         sum(t.amount) AS totalTransferred
+    // 3. Create a composite "Engagement Score"
+    WITH c.cif AS customerID, c.firstName + ' ' + c.lastName AS name, c.jobTitle AS profession,
+         totalPurchases as totalnumberofPurchases,
+         totalSpent,
+         totalTransfersOut as totalnumberofTransfersOut,
+         totalTransferred,
+         (totalSpent+totalTransferred) as totalAmount
+    // 4. Return the top 10 most engaged users
+    RETURN customerID, name, profession, totalnumberofPurchases,totalSpent,totalnumberofTransfersOut,totalTransferred,totalAmount
+    ORDER BY totalAmount DESC
+    LIMIT 10;
