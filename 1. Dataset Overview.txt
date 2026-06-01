@@ -1,0 +1,21 @@
+1. Key Entities and Relationships
+  - Key Entities
+    - Customer: Core customer data
+    - Account: Banking account number
+    - Card: Card number
+    - CardIssuer: Card authority(e.g. Visa)
+    - Merchant: Retailer
+  - Relationships
+    - OWNS_ACCOUNT: Customer -> Account
+    - HAS_CARD: Customer -> Card
+    - ISSUED_BY: Card -> CardIssuer
+    - PURCHASED_AT: Card -> Merchant
+    - TRANSFERRED_TO: Account -> Account
+
+2. Why Graph Database?
+Traditional relational databases require resource-heavy JOIN operations to uncover multi-hop relationships (e.g., A transfers to B, B transfers to C, C transfers back to A).
+Graph-based analysis is uniquely positioned for the banking customer, allowing teams to instantly traverse highly connected data to detect sophisticated financial crimes, assess risk exposure in real-time, and generate profound, holistic customer insights.
+
+3. Potential analytical use-cases
+  - Fraud Detection: Instantly trace circular money movement and complex laundering paths.
+  - Customer 360: Segment clients based on holistic spending behaviors across instruments.
